@@ -46,7 +46,7 @@ const RestaurantProfile = () => {
         restTableMin,
         restTableMax
       })
-      .then(toggleDataEdit(event));
+      .then(() => setIsEditingData(false));
   };
 
   let ViewEdit = isEditingData ? (

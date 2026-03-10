@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Firebase from "../../../firebase/firebase";
 
 const MenuOrder = values => {
@@ -6,26 +6,15 @@ const MenuOrder = values => {
   const [isLoading, setIsLoading] = useState(true);
   const [menuData, setMenuData] = useState();
   const [tempOrder, setTempOrders] = useState([]);
-  const _isMounted = useRef(true);
 
   useEffect(() => {
-    return () => {
-      _isMounted.current = false;
-    };
-  }, []);
-
-  Firebase.getRestaurantMenu(restid)
-    .then(response => {
-      if (_isMounted.current) {
-        if (isLoading !== response.loading) {
-          setIsLoading(response.loading);
-        }
-        if (!isLoading && !menuData) {
-          setMenuData(response.menu);
-        }
-      }
-    })
-    .catch(error => console.log(error));
+    Firebase.getRestaurantMenu(restid)
+      .then(response => {
+        setMenuData(response.menu);
+        setIsLoading(response.loading);
+      })
+      .catch(() => setIsLoading(false));
+  }, [restid]);
 
   const addOrder = event => {
     event.preventDefault();

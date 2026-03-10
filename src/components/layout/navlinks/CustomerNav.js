@@ -15,6 +15,11 @@ const CustomerNav = user => {
         </Link>
       </li>
       <li>
+        <Link to="/edit_profile" className="black-text">
+          Edit Profile
+        </Link>
+      </li>
+      <li>
         <a href="/" onClick={SignOut} className="black-text">
           Log Out
         </a>

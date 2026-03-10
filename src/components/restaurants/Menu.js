@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Firebase from "../../firebase/firebase";
 
 const Menu = props => {
@@ -6,16 +6,14 @@ const Menu = props => {
   const [isLoading, setIsLoading] = useState(true);
   const [menuData, setMenuData] = useState();
 
-  Firebase.getRestaurantMenu(restid)
-    .then(response => {
-      if (isLoading !== response.loading) {
-        setIsLoading(response.loading);
-      }
-      if (!isLoading && !menuData) {
+  useEffect(() => {
+    Firebase.getRestaurantMenu(restid)
+      .then(response => {
         setMenuData(response.menu);
-      }
-    })
-    .catch(error => console.log(error));
+        setIsLoading(response.loading);
+      })
+      .catch(() => setIsLoading(false));
+  }, [restid]);
 
   if (!isLoading && menuData) {
     if (Object.keys(menuData).length > 0) {

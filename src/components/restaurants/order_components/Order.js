@@ -132,7 +132,7 @@ const Order = ({ location }) => {
     event.preventDefault();
     let i = event.target.value;
     socket.emit("staffRequest", i, () => {});
-    if ((i = "bill")) {
+    if (i === "bill") {
       if (dbOrders) {
         Firebase.db
           .collection("orders")

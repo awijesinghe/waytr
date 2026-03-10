@@ -1,13 +1,12 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Firebase from "../../firebase/firebase";
 import { RestaurantListContext } from "../../contexts/RestaurantListContext";
-import { Link, Redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { UserContext } from "../../contexts/UserContext";
 import { Modal } from "react-materialize";
 
 const RestaurantList = () => {
   const [tableNum, setTableNum] = useState(1);
-  let entireRestList = [];
 
   const {
     restaurantList,
@@ -18,36 +17,24 @@ const RestaurantList = () => {
 
   const { currentUserId } = useContext(UserContext);
 
-  Firebase.getRestaurantList().then(response => {
-    if (!isLoading && response.restCollection.length > 0) {
-      entireRestList = response.restCollection;
-      if (restaurantList.length === 0) {
-        setRestaurantList(entireRestList);
-      }
+  useEffect(() => {
+    if (restaurantList.length === 0) {
+      Firebase.getRestaurantList().then(response => {
+        setRestaurantList(response.restCollection);
+        setIsLoading(response.loading);
+      });
+    } else {
+      setIsLoading(false);
     }
-    if (response.loading !== isLoading) {
-      setIsLoading(response.loading);
-    }
-    return entireRestList;
-  });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [searchInput, setSearchInput] = useState("");
 
-  let filteredRestList;
-  if (!searchInput) {
-    filteredRestList = restaurantList;
-  }
-
-  filteredRestList = restaurantList.filter(restaurant => {
+  const filteredRestList = restaurantList.filter(restaurant => {
     return restaurant.restName
       .toUpperCase()
       .includes(searchInput.toUpperCase());
   });
-
-  const handleSubmit = (event, restaurant) => {
-    event.preventDefault();
-    return <Redirect to={"/"} />;
-  };
 
   if (!isLoading && restaurantList) {
     return (

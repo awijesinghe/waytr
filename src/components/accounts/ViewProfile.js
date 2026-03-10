@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import ProfileData from "./ProfileData";
 import { UserContext } from "../../contexts/UserContext";
 import Firebase from "../../firebase/firebase";
@@ -8,25 +8,26 @@ const ViewProfile = () => {
     currentUserId,
     currentUserData,
     setCurrentUserData,
-    isLoading,
     setIsLoading
   } = useContext(UserContext);
 
-  let userData;
-  Firebase.getUserData(currentUserId.uid).then(response => {
-    if (isLoading !== response.loading) {
-      setIsLoading(response.loading);
+  useEffect(() => {
+    if (currentUserId.uid) {
+      Firebase.getUserData(currentUserId.uid).then(response => {
+        setIsLoading(response.loading);
+        if (
+          response.userData.hasOwnProperty("firstName") &&
+          !currentUserData.firstName &&
+          !currentUserData.lastName
+        ) {
+          setCurrentUserData({
+            firstName: response.userData.firstName,
+            lastName: response.userData.lastName
+          });
+        }
+      });
     }
-    if (response.userData.hasOwnProperty("firstName")) {
-      userData = response.userData;
-      if (!currentUserData.firstName && !currentUserData.lastName) {
-        setCurrentUserData({
-          firstName: userData.firstName,
-          lastName: userData.lastName
-        });
-      }
-    }
-  });
+  }, [currentUserId.uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div>

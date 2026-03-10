@@ -4,7 +4,6 @@ import "firebase/firestore";
 import "firebase/storage";
 import "firebase/functions";
 
-import { useDocument, useCollection } from "react-firebase-hooks/firestore";
 
 var firebaseConfig = {
   apiKey: "AIzaSyBfL5Zv3KtO5T-jF8yPf96LlcKsUgULWws",
@@ -96,44 +95,34 @@ class Firebase {
   }
 
   async getUserData(uid) {
-    let userData = {};
-    const [value, loading, error] = await useDocument(
-      this.db.doc("users/" + uid)
-    );
-    if (error) {
-      console.log(error);
+    try {
+      const doc = await this.db.doc("users/" + uid).get();
+      return { userData: doc.exists ? doc.data() : {}, loading: false };
+    } catch (error) {
+      return { userData: {}, loading: false, error };
     }
-    if (!loading && value.data()) {
-      userData = value.data();
-    }
-    return { userData, loading };
   }
 
   async getRestaurantList() {
-    let restCollection = [];
-    const [value, loading, error] = await useCollection(
-      this.db.collection("restaurants")
-    );
-    if (error) {
-      console.log(error);
+    try {
+      const snapshot = await this.db.collection("restaurants").get();
+      const restCollection = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        docId: doc.id
+      }));
+      return { restCollection, loading: false };
+    } catch (error) {
+      return { restCollection: [], loading: false, error };
     }
-    if (!loading && value) {
-      value.docs.map(document => {
-        return (restCollection = [...restCollection, document.data()]);
-      });
-    }
-    return { restCollection, loading };
   }
 
   async getRestaurantMenu(restid) {
-    let menu = {};
-    const [value, loading, error] = await useDocument(
-      this.db.doc("menu/" + restid)
-    );
-    if (!loading && value.data()) {
-      menu = value.data();
+    try {
+      const doc = await this.db.doc("menu/" + restid).get();
+      return { menu: doc.exists ? doc.data() : {}, loading: false, error: null };
+    } catch (error) {
+      return { menu: {}, loading: false, error };
     }
-    return { menu, loading, error };
   }
 
   async sendOrder(orderInfo) {
@@ -146,7 +135,7 @@ class Firebase {
       orderDateTime,
       orderCompleted
     } = orderInfo;
-    this.db
+    return this.db
       .collection("orders")
       .doc()
       .set({
@@ -157,9 +146,6 @@ class Firebase {
         uid,
         orderDateTime,
         orderCompleted
-      })
-      .catch(error => {
-        return error;
       });
   }
 }

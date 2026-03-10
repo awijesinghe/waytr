@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Firebase from "../../firebase/firebase";
 import { RestaurantInfoContext } from "../../contexts/RestaurantInfoContext";
 
@@ -13,21 +13,17 @@ const EditMenu = props => {
     items: [],
     prices: []
   });
-  console.log(restData);
-  Firebase.getRestaurantMenu(restid)
-    .then(response => {
-      if (isLoading !== response.loading) {
+
+  useEffect(() => {
+    Firebase.getRestaurantMenu(restid)
+      .then(response => {
+        if (response.menu.hasOwnProperty("items")) {
+          setNewMenuData(response.menu);
+        }
         setIsLoading(response.loading);
-      }
-      if (
-        !isLoading &&
-        newMenuData.items.length === 0 &&
-        response.menu.hasOwnProperty("items")
-      ) {
-        setNewMenuData(response.menu);
-      }
-    })
-    .catch(error => console.log(error));
+      })
+      .catch(() => setIsLoading(false));
+  }, [restid]);
 
   const AddNewItem = () => {
     setNewMenuData({
@@ -43,26 +39,25 @@ const EditMenu = props => {
     Firebase.db
       .collection("menu")
       .doc(restid)
-      .update({
+      .set({
         allergens: newMenuData.allergens,
         category: newMenuData.category,
         descriptions: newMenuData.descriptions,
         items: newMenuData.items,
         prices: newMenuData.prices,
         restName: restData.restName
-      });
+      }, { merge: true });
     props.history.push("/manage_restaurants/" + restid);
   };
 
   const DeleteItem = i => {
-    let removedMenu = newMenuData;
-    removedMenu.allergens.splice(i, 1);
-    removedMenu.category.splice(i, 1);
-    removedMenu.descriptions.splice(i, 1);
-    removedMenu.items.splice(i, 1);
-    removedMenu.prices.splice(i, 1);
-    setNewMenuData(removedMenu);
-    SaveChanges();
+    setNewMenuData({
+      allergens: newMenuData.allergens.filter((_, idx) => idx !== i),
+      category: newMenuData.category.filter((_, idx) => idx !== i),
+      descriptions: newMenuData.descriptions.filter((_, idx) => idx !== i),
+      items: newMenuData.items.filter((_, idx) => idx !== i),
+      prices: newMenuData.prices.filter((_, idx) => idx !== i)
+    });
   };
 
   if (!isLoading && newMenuData) {
